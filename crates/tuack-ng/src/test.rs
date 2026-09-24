@@ -12,6 +12,7 @@ pub mod policy;
 use crate::prelude::*;
 use crate::test::policy::{DataPolicy, SamplePolicy, ScorePolicy as _};
 use crate::utils::duration::format_duration;
+use crate::utils::problem::io_mode;
 use tuack_lib::test::{TaskParams, TestCaseStatus, TestSession};
 use tuack_lib::utils::testlib::Checker;
 use tuack_utils::checkers::{cpp::CppChecker, prebuilt::PrebuiltChecker};
@@ -265,10 +266,9 @@ pub fn test_problem(
     };
 
     let params = TaskParams {
-        problem_name: problem_config.name.clone(),
+        io_mode: io_mode(problem_config),
         time_limit: Duration::from_secs_f64(problem_config.time_limit),
         memory_limit: problem_config.memory_limit,
-        file_io: problem_config.file_io.unwrap_or(true),
     };
 
     let mut all_test_results = Vec::new();

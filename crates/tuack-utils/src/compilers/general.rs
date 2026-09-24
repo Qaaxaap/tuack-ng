@@ -8,7 +8,7 @@ use crate::process::ProcessSupervisor;
 use strfmt::strfmt;
 use tuack_config::lang::Language;
 use tuack_lib::data::Reader;
-use tuack_lib::utils::compiler::{IoMode, ResourceLimits, RunResult, Runner, RunnerManifest};
+use tuack_lib::utils::compiler::{IoMode, RunResult, RunSpec, Runner, RunnerManifest};
 
 pub struct GeneralRunner {
     tmp_dir: TempDir,
@@ -16,9 +16,6 @@ pub struct GeneralRunner {
     compile_args: String,
     language: Language,
     program_name: String,
-    limits: Option<ResourceLimits>,
-    input: Option<Box<dyn Reader>>,
-    io_mode: IoMode,
 }
 
 impl GeneralRunner {
@@ -45,9 +42,6 @@ impl GeneralRunner {
                 .to_string(),
             language: languages.get(&ext).context("未知格式文件")?.to_owned(),
             program_name,
-            limits: None,
-            input: None,
-            io_mode: IoMode::Stdio,
         })
     }
 
@@ -180,34 +174,21 @@ impl Runner for GeneralRunner {
         Ok(())
     }
 
-    fn set_limits(&mut self, limits: ResourceLimits) {
-        self.limits = Some(limits);
-    }
-
-    fn set_input(&mut self, input: Box<dyn Reader>) {
-        self.input = Some(input);
-    }
-
-    fn set_io_mode(&mut self, io_mode: IoMode) {
-        self.io_mode = io_mode;
-    }
-
     fn set_interactive(&mut self, _grader_file: &Path, _header_file: &Path) -> Result<()> {
         unreachable!("通用运行器不支持交互");
     }
 
-    fn execute(&mut self) -> Result<RunResult> {
-        let limits = self.limits.take().unwrap_or(ResourceLimits::unlimited());
-
-        let mut input = self
-            .input
-            .take()
-            .unwrap_or_else(|| Box::new(std::io::empty()));
+    fn execute(&mut self, spec: RunSpec) -> Result<RunResult> {
+        let RunSpec {
+            limits,
+            io_mode,
+            mut input,
+        } = spec;
 
         let mut cmd = self.get_run_base_command()?;
         cmd.current_dir(&self.tmp_dir);
 
-        match &self.io_mode {
+        match &io_mode {
             IoMode::Stdio => {
                 let stdin_path = self.tmp_dir.path().join("pipe_stdin");
                 let stdout_path = self.tmp_dir.path().join("pipe_stdout");
@@ -242,7 +223,7 @@ impl Runner for GeneralRunner {
 
         // 输出流：只有输出文件不存在时视为无输出；权限等其他错误传播
         let output: Option<Box<dyn Reader>> = {
-            let output_path = match &self.io_mode {
+            let output_path = match &io_mode {
                 IoMode::Stdio => self.tmp_dir.path().join("pipe_stdout"),
                 IoMode::File { output_name, .. } => self.tmp_dir.path().join(output_name),
             };

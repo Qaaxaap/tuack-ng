@@ -4,7 +4,7 @@ use bytesize::ByteSize;
 
 use crate::data::Data;
 use crate::prelude::*;
-use crate::utils::compiler::{IoMode, ResourceLimits, RunStatus, Runner};
+use crate::utils::compiler::{IoMode, ResourceLimits, RunSpec, RunStatus, Runner};
 use crate::utils::testlib::{Checker, JudgeResult};
 
 /// 测试点评测状态。
@@ -34,17 +34,15 @@ pub struct TestCaseResult {
     pub message: Option<String>,
 }
 
-/// 运行参数。
+/// 测试会话参数。
 #[derive(Debug, Clone)]
 pub struct TaskParams {
-    pub problem_name: String,
+    pub io_mode: IoMode,
     pub time_limit: Duration,
     pub memory_limit: ByteSize,
-    pub file_io: bool,
 }
 
 /// 测试会话。
-#[allow(unused)]
 pub struct TestSession<'a> {
     runner: &'a mut dyn Runner,
     checker: &'a dyn Checker,
@@ -71,27 +69,17 @@ impl<'a> TestSession<'a> {
         }
     }
 
-    /// 评测单个测试点：设置 limits/io_mode -> 注入输入 -> 执行 -> 校验 -> 返回结果。
+    /// 评测单个测试点：构造本次运行的输入 -> 执行 -> 校验 -> 返回结果。
     pub fn judge(&mut self, data: &dyn Data) -> Result<TestCaseResult> {
-        self.runner.set_limits(ResourceLimits::new(
-            self.params.time_limit,
-            self.params.memory_limit.as_u64(),
-        ));
-        self.runner.set_io_mode(if self.params.file_io {
-            IoMode::File {
-                input_name: format!("{}.in", self.params.problem_name),
-                output_name: format!("{}.out", self.params.problem_name),
-            }
-        } else {
-            IoMode::Stdio
-        });
-
         let input = match data.input() {
             Ok(i) => i,
             Err(e) => return Ok(uke_result(format!("读取输入失败：{e}"))),
         };
-        self.runner.set_input(input);
-        let run = self.runner.execute()?;
+        let run = self.runner.execute(RunSpec {
+            limits: ResourceLimits::new(self.params.time_limit, self.params.memory_limit.as_u64()),
+            io_mode: self.params.io_mode.clone(),
+            input,
+        })?;
 
         let (status, score, message) = match (run.status, run.output) {
             (RunStatus::Success, None) => {

@@ -1,16 +1,7 @@
 use crate::data::DmkData;
 use crate::prelude::*;
-use crate::utils::compiler::{IoMode, ResourceLimits, RunStatus, Runner};
+use crate::utils::compiler::{IoMode, ResourceLimits, RunSpec, RunStatus, Runner};
 use crate::utils::testlib::{Generator, Validator, ValidatorResult};
-
-/// 数据生成参数（纯数据，对齐 `TaskParams`）。
-#[derive(Debug, Clone)]
-pub struct DmkParams {
-    /// 题目名称（文件 IO 的输入输出文件名前缀）。
-    pub problem_name: String,
-    /// 是否使用文件 IO。
-    pub file_io: bool,
-}
 
 /// 数据生成会话
 pub struct DmkSession<'a> {
@@ -20,8 +11,8 @@ pub struct DmkSession<'a> {
     generator: &'a mut dyn Generator,
     /// 已 prepare 的输入校验器（可为空）。
     validator: Option<&'a dyn Validator>,
-    /// 运行参数。
-    params: DmkParams,
+    /// 标程运行的 IO 模式。
+    io_mode: IoMode,
 }
 
 impl<'a> DmkSession<'a> {
@@ -30,13 +21,13 @@ impl<'a> DmkSession<'a> {
         runner: &'a mut dyn Runner,
         generator: &'a mut dyn Generator,
         validator: Option<&'a dyn Validator>,
-        params: DmkParams,
+        io_mode: IoMode,
     ) -> Self {
         Self {
             runner,
             generator,
             validator,
-            params,
+            io_mode,
         }
     }
 
@@ -59,18 +50,11 @@ impl<'a> DmkSession<'a> {
     pub fn gen_output(&mut self, item: &dyn DmkData) -> Result<()> {
         let input = item.input()?;
 
-        self.runner.set_input(input);
-        self.runner.set_io_mode(if self.params.file_io {
-            IoMode::File {
-                input_name: format!("{}.in", self.params.problem_name),
-                output_name: format!("{}.out", self.params.problem_name),
-            }
-        } else {
-            IoMode::Stdio
-        });
-        self.runner.set_limits(ResourceLimits::unlimited());
-
-        let result = self.runner.execute()?;
+        let result = self.runner.execute(RunSpec {
+            limits: ResourceLimits::unlimited(),
+            io_mode: self.io_mode.clone(),
+            input,
+        })?;
 
         match result.status {
             RunStatus::Success => {}

@@ -72,8 +72,17 @@ pub enum IoMode {
     },
 }
 
+/// 一次运行的输入。
+pub struct RunSpec {
+    /// 资源限制
+    pub limits: ResourceLimits,
+    /// IO 模式
+    pub io_mode: IoMode,
+    /// 输入内容：标准 IO 写入其标准输入，文件 IO 写入其输入文件
+    pub input: Box<dyn Reader>,
+}
+
 /// 运行器：编译 + 资源限制执行。
-#[allow(unused)]
 pub trait Runner: Send {
     /// 获取运行器元数据
     fn manifest(&self) -> RunnerManifest;
@@ -81,18 +90,12 @@ pub trait Runner: Send {
     /// 做必要的准备工作
     fn prepare(&mut self) -> Result<()>;
 
-    /// 设置运行限制
-    fn set_limits(&mut self, limits: ResourceLimits);
-    /// 设置输入（消耗流）
-    fn set_input(&mut self, input: Box<dyn Reader>);
-    /// 设置 IO 模式
-    fn set_io_mode(&mut self, io_mode: IoMode);
     /// 设置交互
     fn set_interactive(&mut self, grader_file: &Path, header_file: &Path) -> Result<()>;
 
     /// 清理
     fn cleanup(&mut self) -> Result<()>;
 
-    /// 执行程序，**消耗 `set_limits` 和 `set_input` 设置的值**。
-    fn execute(&mut self) -> Result<RunResult>;
+    /// 按 `spec` 执行一次程序。
+    fn execute(&mut self, spec: RunSpec) -> Result<RunResult>;
 }

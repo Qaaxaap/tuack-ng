@@ -10,10 +10,11 @@ use rand::Rng;
 
 use crate::context::gctx;
 use crate::prelude::*;
+use crate::utils::problem::io_mode;
 use crate::utils::random::gen_rnd;
 use crate::utils::test_object::parse_test_object;
 use crate::validate::compile_validator;
-use tuack_lib::dmk::{DmkParams, DmkSession};
+use tuack_lib::dmk::DmkSession;
 use tuack_lib::utils::testlib::{Generator, Validator};
 use tuack_utils::compilers::cpp::CppRunner;
 use tuack_utils::compilers::general::GeneralRunner;
@@ -390,11 +391,12 @@ pub fn main(args: DmkArgs) -> Result<()> {
     std_compile_pb.finish_and_clear();
     std_result?;
 
-    let params = DmkParams {
-        problem_name: current_problem.name.clone(),
-        file_io: current_problem.file_io.unwrap_or(true),
-    };
-    let mut session = DmkSession::new(&mut *runner, &mut generator, validator.as_deref(), params);
+    let mut session = DmkSession::new(
+        &mut *runner,
+        &mut generator,
+        validator.as_deref(),
+        io_mode(current_problem),
+    );
 
     let dmk_pb = gctx()
         .multiprogress

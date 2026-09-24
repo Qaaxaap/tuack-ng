@@ -6,7 +6,7 @@ use crate::command::string_to_command;
 use crate::prelude::*;
 use crate::process::ProcessSupervisor;
 use tuack_lib::data::Reader;
-use tuack_lib::utils::compiler::{IoMode, ResourceLimits, RunResult, Runner, RunnerManifest};
+use tuack_lib::utils::compiler::{IoMode, RunResult, RunSpec, Runner, RunnerManifest};
 
 pub struct CppRunner {
     tmp_dir: TempDir,
@@ -16,9 +16,6 @@ pub struct CppRunner {
     interactive: bool,
     grader_path: Option<PathBuf>,
     header_path: Option<PathBuf>,
-    limits: Option<ResourceLimits>,
-    input: Option<Box<dyn Reader>>,
-    io_mode: IoMode,
 }
 
 impl CppRunner {
@@ -46,9 +43,6 @@ impl CppRunner {
             interactive: false,
             grader_path: None,
             header_path: None,
-            limits: None,
-            input: None,
-            io_mode: IoMode::Stdio,
         })
     }
 
@@ -131,18 +125,6 @@ impl Runner for CppRunner {
         Ok(())
     }
 
-    fn set_limits(&mut self, limits: ResourceLimits) {
-        self.limits = Some(limits);
-    }
-
-    fn set_input(&mut self, input: Box<dyn Reader>) {
-        self.input = Some(input);
-    }
-
-    fn set_io_mode(&mut self, io_mode: IoMode) {
-        self.io_mode = io_mode;
-    }
-
     fn set_interactive(&mut self, grader_file: &Path, header_file: &Path) -> Result<()> {
         self.interactive = true;
         self.grader_path = Some(grader_file.to_owned());
@@ -150,13 +132,12 @@ impl Runner for CppRunner {
         Ok(())
     }
 
-    fn execute(&mut self) -> Result<RunResult> {
-        let limits = self.limits.take().unwrap_or(ResourceLimits::unlimited());
-
-        let mut input = self
-            .input
-            .take()
-            .unwrap_or_else(|| Box::new(std::io::empty()));
+    fn execute(&mut self, spec: RunSpec) -> Result<RunResult> {
+        let RunSpec {
+            limits,
+            io_mode,
+            mut input,
+        } = spec;
 
         let program_path = self.tmp_dir.path().join(format!(
             "{}{}",
@@ -171,7 +152,7 @@ impl Runner for CppRunner {
         cmd.current_dir(&self.tmp_dir);
 
         // 根据 IO 模式设置 stdin/stdout
-        match &self.io_mode {
+        match &io_mode {
             IoMode::Stdio => {
                 let stdin_path = self.tmp_dir.path().join("pipe_stdin");
                 let stdout_path = self.tmp_dir.path().join("pipe_stdout");
@@ -205,7 +186,7 @@ impl Runner for CppRunner {
         let stderr = std::fs::read(stderr_path)?;
 
         let output: Option<Box<dyn Reader>> = {
-            let output_path = match &self.io_mode {
+            let output_path = match &io_mode {
                 IoMode::Stdio => self.tmp_dir.path().join("pipe_stdout"),
                 IoMode::File { output_name, .. } => self.tmp_dir.path().join(output_name),
             };
