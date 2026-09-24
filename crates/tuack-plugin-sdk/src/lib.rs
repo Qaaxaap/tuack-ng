@@ -2,7 +2,7 @@
 //!
 //! 处理器插件实现 [`Processor`]，渲染器插件实现 [`Renderer`]，导出器插件实现
 //! [`Dumper`]；分别用 [`processor`] / [`renderer`] / [`dumper`] 宏注册为
-//! extism 导出函数，JSON 编解码、内存与错误处理均由 SDK 接管。
+//! extism 导出函数，JSON 编解码（字节载荷走 msgpack）、内存与错误处理均由 SDK 接管。
 //!
 //! 一个最小处理器插件（编译目标 `wasm32-wasip1`）：
 //! ```ignore

@@ -1,6 +1,6 @@
 [package]
 name = "tuack-plugin-sdk"
-description = "tuack-ng 处理器插件 Rust SDK"
+description = "tuack-ng 插件 Rust SDK"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true
