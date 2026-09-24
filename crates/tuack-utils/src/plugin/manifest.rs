@@ -9,6 +9,8 @@ pub struct PluginManifest {
     pub name: String,
     /// 插件版本（语义化版本）
     pub version: String,
+    /// 插件 API 版本（语义化版本，必填）：宿主只加载 major 相同、minor 不高于自身的插件
+    pub pluginapi: String,
     #[serde(default)]
     pub description: Option<String>,
     #[serde(default)]
@@ -19,9 +21,6 @@ pub struct PluginManifest {
     pub repo_url: Option<String>,
     #[serde(default)]
     pub url: Option<String>,
-    /// 最低主程序版本，低于则拒绝加载
-    #[serde(default)]
-    pub minver: Option<String>,
     /// 随包资源目录，映射到插件 WASI 只读路径
     #[serde(default)]
     pub asset_dir: Option<PathBuf>,

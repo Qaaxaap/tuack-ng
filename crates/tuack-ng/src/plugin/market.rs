@@ -3,7 +3,7 @@ use crate::utils::aligned::AlignedFields;
 use clap::{Args, Subcommand};
 use owo_colors::OwoColorize;
 use std::time::Duration;
-use tuack_utils::plugin::manager::{DISABLED_MARKER, TRUSTED_MARKER, meets_minver, valid_name};
+use tuack_utils::plugin::manager::{DISABLED_MARKER, TRUSTED_MARKER, check_plugin_api, valid_name};
 
 #[derive(Args, Debug)]
 #[command(version)]
@@ -89,8 +89,7 @@ struct MarketplacePlugin {
     repo_url: String,
     #[serde(default)]
     url: Option<String>,
-    #[serde(default)]
-    minver: Option<String>,
+    pluginapi: String,
     artifact_name: String,
     download_url: String,
     sha256: String,
@@ -160,9 +159,7 @@ fn market_show(name: &str) -> Result<()> {
     if let Some(url) = &p.url {
         fields.push("主页", url);
     }
-    if let Some(minver) = &p.minver {
-        fields.push("最低版本", minver);
-    }
+    fields.push("插件 API", &p.pluginapi);
     msg!("{}", fields.render());
     Ok(())
 }
@@ -175,7 +172,7 @@ fn market_install(name: &str, force: bool) -> Result<()> {
         .find(|p| p.name == name)
         .with_context(|| format!("市场中未找到：{}", name))?;
 
-    check_minver(plugin)?;
+    check_market_plugin_api(plugin)?;
 
     let dest = gctx().plugins.plugins_dir().join(name);
     if dest.exists() && !force {
@@ -252,7 +249,7 @@ fn market_update(name: Option<String>, all: bool, force: bool) -> Result<()> {
 
 /// 更新单个插件（更新后取消信任）。
 fn market_update_one(plugin: &MarketplacePlugin, force: bool) -> Result<()> {
-    check_minver(plugin)?;
+    check_market_plugin_api(plugin)?;
     let status = gctx().plugins.plugin(&plugin.name)?;
     if !force && !status.dir.join(FROM_MARKET_MARKER).is_file() {
         msg_warn!(
@@ -297,20 +294,9 @@ fn version_cmp(market: &str, installed: &str) -> Result<std::cmp::Ordering> {
     Ok(market.cmp(&installed))
 }
 
-/// 校验主程序版本满足插件 `minver`。
-fn check_minver(plugin: &MarketplacePlugin) -> Result<()> {
-    let Some(minver) = &plugin.minver else {
-        return Ok(());
-    };
-    if !meets_minver(env!("CARGO_PKG_VERSION"), minver)? {
-        bail!(
-            "插件 {} 要求主程序 >= {}，当前 {}",
-            plugin.name,
-            minver,
-            env!("CARGO_PKG_VERSION")
-        );
-    }
-    Ok(())
+/// 校验市场条目的插件 API 版本可被当前宿主加载。
+fn check_market_plugin_api(plugin: &MarketplacePlugin) -> Result<()> {
+    check_plugin_api(&plugin.pluginapi).with_context(|| format!("插件 {} 无法加载", plugin.name))
 }
 
 /// 下载并安装市场插件到 `dest`：先下载校验，再解包到暂存目录，成功后才替换目标。

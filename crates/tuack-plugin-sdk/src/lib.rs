@@ -68,3 +68,15 @@ pub fn __report_error(e: &extism_pdk::Error) {
         extism_pdk::extism::error_set(mem.offset());
     }
 }
+
+#[cfg(test)]
+mod tests {
+    /// SDK 版本须与宿主插件 API 版本一致：插件清单里的 `pluginapi` 就写 SDK 版本。
+    #[test]
+    fn sdk_version_matches_plugin_api() {
+        assert_eq!(
+            env!("CARGO_PKG_VERSION"),
+            tuack_lib::plugin::PLUGIN_API_VERSION
+        );
+    }
+}

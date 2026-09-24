@@ -165,9 +165,7 @@ fn print_status(s: &PluginStatus) -> Result<()> {
     if let Some(x) = &m.url {
         fields.push("主页", x);
     }
-    if let Some(x) = &m.minver {
-        fields.push("最低版本", x);
-    }
+    fields.push("插件 API", &m.pluginapi);
     if let Some(x) = &m.asset_dir {
         fields.push("资源目录", x.display());
     }

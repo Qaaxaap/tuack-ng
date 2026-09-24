@@ -3,7 +3,7 @@
 //! - 自带模板：`<assets_dir>/templates/<name>.json`（`TemplateManifest` + store 内容寻址）。
 //! - 插件包：`<用户目录>/plugins/<pkg>/plugin.toml`（仅用户目录，见 [`PluginManager::discover`]）。
 //!
-//! 冲突与失败策略：插件包解析失败、`minver` 不满足、包名与已发现插件重复、
+//! 冲突与失败策略：插件包解析失败、`pluginapi` 不可加载、包名与已发现插件重复、
 //! 组件名与同域内置/其他插件冲突时，**跳过该包并警告**；自带模板解析失败为硬错误。
 //! 不同域（dumper/renderer/processor/ren_template）允许同名。
 
@@ -12,6 +12,7 @@ use tuack_lib::dump::Dumper;
 use tuack_lib::ren::{RenProcessor, Renderer};
 
 use crate::plugin::manifest::{Component, ComponentBody, ComponentKind, PluginManifest};
+use tuack_lib::plugin::PLUGIN_API_VERSION;
 use crate::prelude::*;
 use crate::ren::manifest::{TargetType, TemplateManifest};
 
@@ -182,8 +183,9 @@ pub struct PluginManager {
 impl PluginManager {
     /// 扫描 `assets_dirs`（自带模板）与 `plugin_dir`（插件包，仅用户目录），构建管理器。
     ///
-    /// `current_version` 用于 `minver` 校验。各插件加载状态见 [`PluginManager::plugin_statuses`]。
-    pub fn discover(assets_dirs: &[PathBuf], plugin_dir: &Path, current_version: &str) -> Self {
+    /// 兼容性由插件声明的 `pluginapi` 与 [`tuack_lib::plugin::PLUGIN_API_VERSION`] 判定。
+    /// 各插件加载状态见 [`PluginManager::plugin_statuses`]。
+    pub fn discover(assets_dirs: &[PathBuf], plugin_dir: &Path) -> Self {
         // 1. 自带模板（只登记路径与名字，清单惰性解析）
         let mut templates: IndexMap<String, BuiltinTemplate> = IndexMap::new();
         let mut builtin_template_names: Vec<String> = Vec::new();
@@ -298,7 +300,6 @@ impl PluginManager {
                     &pkg_dir,
                     &dir_name,
                     &manifest,
-                    current_version,
                     &builtin_template_names,
                     &component_owner,
                     &packages,
@@ -640,7 +641,6 @@ fn load_package(
     pkg_dir: &Path,
     dir_name: &str,
     manifest: &PluginManifest,
-    current_version: &str,
     builtin_template_names: &[String],
     component_owner: &IndexMap<(ComponentKind, String), String>,
     existing_packages: &IndexMap<String, PluginPackage>,
@@ -656,17 +656,8 @@ fn load_package(
     if let Err(e) = semver::Version::parse(&manifest.version) {
         return Err((name, format!("插件 version 非法：{e}")));
     }
-    if let Some(minver) = manifest.minver.clone() {
-        match meets_minver(current_version, &minver) {
-            Ok(true) => {}
-            Ok(false) => {
-                return Err((
-                    name,
-                    format!("要求主程序 >= {}，当前 {}", minver, current_version),
-                ));
-            }
-            Err(e) => return Err((name, e.to_string())),
-        }
+    if let Err(e) = check_plugin_api(&manifest.pluginapi) {
+        return Err((name, e.to_string()));
     }
 
     // 验证 wasm 入口与资源目录可访问（且不越出包目录）
@@ -740,11 +731,17 @@ fn is_builtin_reserved(kind: ComponentKind, name: &str, builtin_template_names: 
     }
 }
 
-/// 语义化版本比较：`current >= required`。
-pub fn meets_minver(current: &str, required: &str) -> Result<bool> {
-    let current = semver::Version::parse(current)
-        .with_context(|| format!("主程序版本号非法：{}", current))?;
+/// 校验插件声明的 API 版本可被当前宿主加载：major 相同且 minor 不高于宿主。
+pub fn check_plugin_api(required: &str) -> Result<()> {
     let required = semver::Version::parse(required)
-        .with_context(|| format!("插件 minver 非法：{}", required))?;
-    Ok(current >= required)
+        .with_context(|| format!("pluginapi 非法：{required}"))?;
+    let host = semver::Version::parse(PLUGIN_API_VERSION)
+        .expect("PLUGIN_API_VERSION 必须是合法的语义化版本");
+    if required.major != host.major {
+        bail!("插件 API {required} 与宿主 {host} 的大版本不一致");
+    }
+    if required.minor > host.minor {
+        bail!("插件 API {required} 高于宿主 {host}");
+    }
+    Ok(())
 }
