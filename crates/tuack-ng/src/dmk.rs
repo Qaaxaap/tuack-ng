@@ -16,9 +16,9 @@ use crate::utils::test_object::parse_test_object;
 use crate::validate::compile_validator;
 use tuack_lib::dmk::DmkSession;
 use tuack_lib::utils::testlib::{Generator, Validator};
-use tuack_utils::compilers::cpp::CppRunner;
-use tuack_utils::compilers::general::GeneralRunner;
-use tuack_utils::compilers::generator::CppGenerator;
+use tuack_utils::runners::cpp::CppRunner;
+use tuack_utils::runners::general::GeneralRunner;
+use tuack_utils::generators::cpp::CppGenerator;
 use tuack_utils::data::FsTestData;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
