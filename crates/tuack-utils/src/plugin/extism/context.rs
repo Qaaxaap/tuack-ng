@@ -10,9 +10,9 @@ use extism::{CurrentPlugin, UserData, Val};
 use path_clean::PathClean;
 
 use tuack_lib::data::Reader;
-use tuack_lib::ren::CommandResult;
+use tuack_lib::plugin::{CommandResult, OutputSpec};
 use tuack_lib::utils::asset::AssetProvider;
-use tuack_lib::utils::output::{OutputFile, OutputSpec};
+use tuack_lib::utils::output::OutputFile;
 
 use crate::utils::KeepAliveReader;
 

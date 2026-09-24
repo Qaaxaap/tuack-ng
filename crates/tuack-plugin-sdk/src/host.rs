@@ -3,7 +3,7 @@
 use std::io::Read;
 
 use extism_pdk::{Error, Json, host_fn};
-use tuack_lib::ren::CommandResult;
+use tuack_lib::plugin::CommandResult;
 
 /// 宿主提供的 host 函数（由 extism 的 `host_context` 承载状态）。
 #[host_fn("extism:host/user")]

@@ -7,7 +7,8 @@ use extism::convert::Json;
 use extism::{Manifest, Wasm, WasmInput};
 use tempfile::TempDir;
 
-use tuack_lib::dump::{DumpDocument, Dumper, DumperOutput};
+use tuack_lib::dump::{DumpDocument, Dumper};
+use tuack_lib::plugin::DumperOutput;
 use tuack_lib::utils::asset::AssetProvider;
 use tuack_lib::utils::output::OutputFile;
 

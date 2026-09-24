@@ -7,7 +7,8 @@ use extism::convert::Json;
 use extism::{Manifest, Wasm, WasmInput};
 use tempfile::TempDir;
 
-use tuack_lib::ren::{RenderDocument, Renderer, RendererOutput};
+use tuack_lib::plugin::RendererOutput;
+use tuack_lib::ren::{RenderDocument, Renderer};
 use tuack_lib::utils::asset::AssetProvider;
 use tuack_lib::utils::output::OutputFile;
 

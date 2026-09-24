@@ -32,12 +32,14 @@ pub use extism_pdk::{Error, Json, host_fn};
 pub use log;
 pub use tuack_lib::dump::{
     DumpCase, DumpChecker, DumpConfig, DumpDocument, DumpFile, DumpProblem, DumpSample,
-    DumpSubtask, DumperOutput, ScorePolicy,
+    DumpSubtask, ScorePolicy,
 };
+pub use tuack_lib::plugin::{CommandResult, DumperOutput, OutputSpec, RendererOutput};
 pub use tuack_lib::ren::{
-    CommandResult, ProblemType, ProcessorOutput, RenderDocument, RendererOutput,
+    DateInfo, Problem, ProblemMeta, ProblemType, ProcessorOutput, RenConfig, RenParams,
+    RenderDocument, SupportLanguage,
 };
-pub use tuack_lib::utils::output::{OutputFile, OutputSpec};
+pub use tuack_lib::utils::output::OutputFile;
 pub use tuack_ng_parser::ast::Document;
 
 mod dumper;

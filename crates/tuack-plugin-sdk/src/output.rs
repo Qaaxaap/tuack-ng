@@ -1,7 +1,8 @@
 //! 产物转换：把插件产物列表转成可回传的 `OutputSpec`。
 
 use extism_pdk::Error;
-use tuack_lib::utils::output::{OutputFile, OutputSpec};
+use tuack_lib::plugin::OutputSpec;
+use tuack_lib::utils::output::OutputFile;
 
 /// 把产物文件列表转成可回传的 [`OutputSpec`]：资产保留句柄（host-to-host），
 /// 其余内容写入 WASI 工作区 `/out/<path>`（供 [`crate::renderer`] / [`crate::dumper`]
