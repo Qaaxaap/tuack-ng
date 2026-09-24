@@ -52,6 +52,9 @@ pub enum Targets {
     /// 迁移配置文件
     #[command(version)]
     Migrate,
+    /// 查看配置文件错误
+    #[command(version)]
+    Validate,
 }
 
 #[derive(Args, Debug)]
@@ -290,6 +293,9 @@ pub fn main(args: ConfArgs) -> Result<()> {
         }
         Targets::Migrate => {
             conf_migrate()?;
+        }
+        Targets::Validate => {
+            println!("{}", gctx().loadctx.render_tree());
         }
     }
 

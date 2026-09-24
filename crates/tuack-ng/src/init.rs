@@ -179,7 +179,7 @@ fn init_context(
                     let warn_count = ctx.root.count_warnings();
                     if warn_count > 0 {
                         msg_warn!(
-                            "配置文件中发现了 {} 个警告。使用 `tuack-ng doc validate` 查看。",
+                            "配置文件中发现了 {} 个警告。使用 `tuack-ng conf validate` 查看。",
                             warn_count
                         );
                     }
@@ -252,13 +252,13 @@ pub fn init(verbose: &bool, cli: &crate::Cli) -> Result<()> {
     let multi = init_log(verbose)?;
     // 生成补全文件时，有可能还没有全局配置文件亦或者不合法，所以可能会失败
     // 因此，跳过初始化逻辑
-    if !matches!(cli.command, crate::Commands::Gen(ref args)
+    if !matches!(&cli.command, crate::Commands::Gen(args)
        if matches!(args.target, crate::generate::Targets::Complete(_)))
     {
-        let migrating = matches!(cli.command, crate::Commands::Conf(ref args)
+        let migrating = matches!(&cli.command, crate::Commands::Conf(args)
        if matches!(args.target, crate::conf::Targets::Migrate));
-        let validating = matches!(cli.command, crate::Commands::Doc(ref args)
-       if matches!(args.target, crate::doc::Targets::Validate));
+        let validating = matches!(&cli.command, crate::Commands::Conf(args)
+       if matches!(args.target, crate::conf::Targets::Validate));
         let quiet_plugins = matches!(cli.command, crate::Commands::Plugin(_));
 
         init_context(multi, migrating, validating, quiet_plugins)?;
