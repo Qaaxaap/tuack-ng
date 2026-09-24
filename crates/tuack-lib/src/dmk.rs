@@ -1,4 +1,4 @@
-use crate::data::DmkData;
+use crate::data::{DataMut, DmkItem};
 use crate::prelude::*;
 use crate::utils::compiler::{IoMode, ResourceLimits, RunSpec, RunStatus, Runner};
 use crate::utils::testlib::{Generator, Validator, ValidatorResult};
@@ -32,7 +32,7 @@ impl<'a> DmkSession<'a> {
     }
 
     /// 生成单点输入
-    pub fn gen_input(&self, item: &dyn DmkData, seed: u64) -> Result<()> {
+    pub fn gen_input(&self, item: &dyn DmkItem, seed: u64) -> Result<()> {
         let stream = self.generator.run(item.args().clone(), seed)?;
         item.write_input(stream)?;
 
@@ -47,7 +47,7 @@ impl<'a> DmkSession<'a> {
     }
 
     /// 用标程生成单点输出
-    pub fn gen_output(&mut self, item: &dyn DmkData) -> Result<()> {
+    pub fn gen_output(&mut self, item: &dyn DataMut) -> Result<()> {
         let input = item.input()?;
 
         let result = self.runner.execute(RunSpec {

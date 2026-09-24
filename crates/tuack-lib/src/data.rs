@@ -18,14 +18,17 @@ pub trait Data: Send {
     fn answer(&self) -> io::Result<Box<dyn Reader>>;
 }
 
-/// 可写数据点
-pub trait DmkData: Data {
-    /// 生成参数
-    fn args(&self) -> &IndexMap<String, Arg>;
-
+/// 可写数据源
+pub trait DataMut: Data {
     /// 写入输入文件
     fn write_input(&self, input: Box<dyn Reader>) -> Result<()>;
 
     /// 写入输出文件
     fn write_output(&self, output: Box<dyn Reader>) -> Result<()>;
+}
+
+/// 数据生成中的数据点：可写，并携带生成参数
+pub trait DmkItem: DataMut {
+    /// 生成参数
+    fn args(&self) -> &IndexMap<String, Arg>;
 }

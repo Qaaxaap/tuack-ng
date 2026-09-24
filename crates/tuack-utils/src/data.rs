@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use crate::prelude::*;
 use tuack_config::{DmkConfig, ExpandedDataItem, ExpandedSampleItem, ProblemConfig};
-use tuack_lib::data::{Data, DmkData, Reader};
+use tuack_lib::data::{Data, DataMut, DmkItem, Reader};
 use tuack_lib::utils::testlib::Arg;
 
 /// 构造正式数据的 `FsTestData` 列表（从 `data/` 读取）。
@@ -134,14 +134,7 @@ impl Data for FsTestData<'_> {
     }
 }
 
-impl DmkData for FsTestData<'_> {
-    fn args(&self) -> &IndexMap<String, Arg> {
-        match &self.item {
-            TestItemRef::Data(item) => &item.args,
-            TestItemRef::Sample(item) => &item.args,
-        }
-    }
-
+impl DataMut for FsTestData<'_> {
     fn write_input(&self, mut input: Box<dyn Reader>) -> Result<()> {
         let mut f = std::fs::File::create(self.input_path())?;
         std::io::copy(&mut *input, &mut f)?;
@@ -152,5 +145,14 @@ impl DmkData for FsTestData<'_> {
         let mut f = std::fs::File::create(self.output_path())?;
         std::io::copy(&mut *output, &mut f)?;
         Ok(())
+    }
+}
+
+impl DmkItem for FsTestData<'_> {
+    fn args(&self) -> &IndexMap<String, Arg> {
+        match &self.item {
+            TestItemRef::Data(item) => &item.args,
+            TestItemRef::Sample(item) => &item.args,
+        }
     }
 }
