@@ -4,6 +4,8 @@
 init:
     # Init git submodule
     git submodule update --init --recursive
+    # 提交信息校验钩子（.githooks/commit-msg）
+    git config core.hooksPath .githooks
     @if [ -f /etc/NIXOS ]; then \
         just _nixos-init; \
     fi

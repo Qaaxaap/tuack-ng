@@ -136,6 +136,21 @@ gitGraph
 
 在本代码仓库提交时，请尽量遵守[约定式提交规范](https://www.conventionalcommits.org/zh-hans/v1.0.0/)。
 
+**范围**：写改动主体所在的**模块路径**：顶层用 crate 简称，需要更细时用 `/` 往下写目录或模块名。
+
+只写一个路径；改动落在某个子模块时就写到子模块（`cli/dmk` 优于 `cli`），主体横跨整个 crate 时才只写到 crate。
+
+| 顶层         | 目录                          | 二级示例                                                                                                        |
+| :----------- | :---------------------------- | :-------------------------------------------------------------------------------------------------------------- |
+| `cli`        | `crates/tuack-ng/src`         | `cli/doc`、`cli/test`、`cli/ren`、`cli/dmk`、`cli/generate`、`cli/plugin`、`cli/validate`、`cli/conf`           |
+| `lib`        | `crates/tuack-lib/src`        | `lib/ren`、`lib/dump`、`lib/dmk`、`lib/plugin`、`lib/utils`                                                     |
+| `config`     | `crates/tuack-config/src`     | `config/problem`、`config/current_location`                                                                     |
+| `utils`      | `crates/tuack-utils/src`      | `utils/ren`、`utils/dump`、`utils/doc`、`utils/compilers`、`utils/checkers`、`utils/validators`、`utils/plugin` |
+| `parser`     | `crates/tuack-ng-parser/src`  | `parser/ast`、`parser/printers`、`parser/visitor`、`parser/transform`                                           |
+| `plugin-sdk` | `crates/tuack-plugin-sdk/src` | `plugin-sdk/host`、`plugin-sdk/processor`、`plugin-sdk/dumper`、`plugin-sdk/renderer`                           |
+| `assets`     | `assets/`                     | `assets/templates`、`assets/checkers`                                                                           |
+| —            | 仓库级事务                    | `nix`、`deps`                                                                                                   |
+
 ### 合并更改
 
 在进行合并之前，请先测试您贡献的代码，确保您贡献的代码能稳定运作。
