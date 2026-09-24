@@ -16,7 +16,6 @@ fn workspace_root() -> PathBuf {
         .to_path_buf()
 }
 
-#[allow(unused)]
 fn copy_testlib(source: PathBuf) -> io::Result<()> {
     let checkers_dir = workspace_root().join("assets/checkers");
     let testlib_dest = checkers_dir.join("testlib.h");
@@ -106,7 +105,6 @@ fn main() {
         .unwrap();
 }
 
-#[allow(unused)]
 fn compile_cpp_if_needed(cpp_file: &Path) {
     let exe_name = cpp_file.with_extension(env::consts::EXE_EXTENSION);
     let exe_name = exe_name.file_name().unwrap().to_string_lossy();

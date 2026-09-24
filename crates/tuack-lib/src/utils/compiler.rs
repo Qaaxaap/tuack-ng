@@ -36,7 +36,6 @@ impl ResourceLimits {
 
 /// 进程结束状态。
 #[derive(Debug)]
-#[allow(dead_code)]
 pub enum RunStatus {
     Success,
     NonZeroExit(i32),

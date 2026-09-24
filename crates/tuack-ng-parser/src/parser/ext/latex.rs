@@ -276,7 +276,3 @@ pub fn latex_parser_extension() -> impl ParserExtension {
 pub struct NoParserOptions;
 impl ParserOptions for NoParserOptions {}
 
-#[allow(dead_code)]
-fn _unused() -> Option<NodeRef> {
-    None
-}

@@ -16,10 +16,7 @@ use rushdown::parser::{
 };
 use rushdown::text::{self, BlockReader, EOS, Reader as _};
 use rushdown::util::{is_punct, is_space, resolve_entity_references, resolve_numeric_references};
-use rushdown::{
-    Result,
-    ast::{Arena, Attributes, KindData, NodeRef, NodeType, PrettyPrint},
-};
+use rushdown::ast::{Arena, Attributes, KindData, NodeRef, NodeType, PrettyPrint};
 
 const OPEN_DIV_DEPTH: &str = "tuack-ng-parser-fenced-div-depth";
 
@@ -388,7 +385,3 @@ pub(crate) fn fenced_div_to_container(
     (kind, params)
 }
 
-#[allow(dead_code)]
-fn _unused() -> Result<()> {
-    Ok(())
-}

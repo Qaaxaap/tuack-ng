@@ -9,7 +9,6 @@ use crate::utils::testlib::{Checker, JudgeResult};
 
 /// 测试点评测状态。
 #[derive(Debug)]
-#[allow(clippy::upper_case_acronyms)]
 pub enum TestCaseStatus {
     AC,
     WA,

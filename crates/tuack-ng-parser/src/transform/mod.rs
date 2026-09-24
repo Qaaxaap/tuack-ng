@@ -143,7 +143,6 @@ fn transform_link(link: &mut Link, f: &mut impl FnMut(&str) -> String) {
     link.destination = f(&link.destination);
 }
 
-#[allow(unused)]
 fn _assert_send() {
     fn assert_traits<T: Send>() {}
     assert_traits::<Document>();

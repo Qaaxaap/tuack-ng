@@ -5,7 +5,6 @@
 
 use core::fmt;
 
-use rushdown::Result;
 use rushdown::ast::{Arena, KindData, NodeRef, NodeType, PrettyPrint};
 use rushdown::parser::{InlineParser, ParserExtension, ParserOptions};
 use rushdown::text::{self, Reader as _};
@@ -130,7 +129,3 @@ pub fn link_attribute_parser_extension() -> impl ParserExtension {
 pub struct NoParserOptions;
 impl ParserOptions for NoParserOptions {}
 
-#[allow(dead_code)]
-fn _unused() -> Result<()> {
-    Ok(())
-}

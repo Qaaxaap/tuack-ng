@@ -1,4 +1,3 @@
-#![allow(unused)]
 use crate::prelude::*;
 use debug_tree::{TreeBuilder, TreeConfig, TreeSymbols};
 
