@@ -35,8 +35,9 @@ struct Cli {
     #[arg(short, long, global = true)]
     /// 详细模式
     verbose: bool,
+    #[cfg(debug_assertions)]
     #[arg(long, global = true)]
-    /// 静默模式，无视详细
+    /// 静默模式，无视详细（仅调试构建）
     silent: bool,
 }
 
