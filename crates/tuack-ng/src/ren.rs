@@ -1,13 +1,13 @@
 use crate::context::gctx;
 use crate::prelude::*;
+use crate::utils::problem::meta;
 use clap::Args;
 use indexmap::IndexMap;
 use indicatif::ProgressBar;
 use opener::open;
 use std::time::Duration;
 use tuack_lib::ren::{
-    DateInfo, Problem, ProblemMeta, ProblemType, RenConfig, RenParams, RenProcessor,
-    RenderDocument, SupportLanguage,
+    DateInfo, Problem, RenConfig, RenParams, RenProcessor, RenderDocument, SupportLanguage,
 };
 use tuack_ng_parser::parse;
 use tuack_utils::assets::FsAssetProvider;
@@ -95,37 +95,6 @@ fn build_ren_config(
         params,
         support_languages,
     })
-}
-
-/// 从 ProblemConfig 提取题目渲染元信息
-fn build_problem_meta(problem: &ProblemConfig, day_config: &ContestDayConfig) -> ProblemMeta {
-    let submit_filenames = day_config
-        .compile
-        .keys()
-        .map(|lang_key| format!("{}.{}", problem.name, lang_key))
-        .collect();
-
-    let point_equal = if problem.runtime.data.is_empty() {
-        true
-    } else {
-        let first = problem.runtime.data[0].score;
-        problem.runtime.data.iter().all(|item| item.score == first)
-    };
-
-    ProblemMeta {
-        name: problem.name.clone(),
-        title: problem.title.clone(),
-        problem_type: match problem.problem_type {
-            tuack_config::ProblemType::Program => ProblemType::Program,
-            tuack_config::ProblemType::Output => ProblemType::Output,
-            tuack_config::ProblemType::Interactive => ProblemType::Interactive,
-        },
-        time_limit: Duration::from_secs_f64(problem.time_limit),
-        memory_limit: problem.memory_limit,
-        testcase: problem.runtime.data.len(),
-        point_equal,
-        submit_filename: submit_filenames,
-    }
 }
 
 /// 构造一天的可渲染文档：读题面 -> 模板展开 -> 解析 -> 处理器 -> 图片扫描登记。
@@ -234,7 +203,7 @@ fn build_render_document(
 
         problems.push(Problem {
             idx: idx as u64,
-            meta: build_problem_meta(problem_config, day_config),
+            meta: meta(problem_config, day_config),
             ast,
             images,
         });

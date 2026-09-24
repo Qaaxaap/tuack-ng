@@ -9,11 +9,9 @@
 pub mod document;
 pub mod processor;
 
+pub use crate::problem::{ProblemMeta, ProblemType};
 use crate::utils::output::OutputFile;
-pub use document::{
-    DateInfo, Problem, ProblemMeta, ProblemType, RenConfig, RenParams, RenderDocument,
-    SupportLanguage,
-};
+pub use document::{DateInfo, Problem, RenConfig, RenParams, RenderDocument, SupportLanguage};
 pub use processor::{ProcessorOutput, RenProcessor};
 
 use crate::prelude::*;

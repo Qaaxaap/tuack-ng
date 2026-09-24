@@ -77,29 +77,35 @@ impl Dumper for LemonDumper {
         for prob in &doc.problems {
             for case in &prob.data {
                 files.push(OutputFile::File {
-                    path: PathBuf::from(format!("data/{}/{}{}.in", prob.name, prob.name, case.id)),
+                    path: PathBuf::from(format!(
+                        "data/{}/{}{}.in",
+                        prob.meta.name, prob.meta.name, case.id
+                    )),
                     bytes: assets.load(prob.idx, &case.input)?,
                 });
                 files.push(OutputFile::File {
-                    path: PathBuf::from(format!("data/{}/{}{}.ans", prob.name, prob.name, case.id)),
+                    path: PathBuf::from(format!(
+                        "data/{}/{}{}.ans",
+                        prob.meta.name, prob.meta.name, case.id
+                    )),
                     bytes: assets.load(prob.idx, &case.output)?,
                 });
             }
 
             let mut cases: Vec<LemonCase> = Vec::new();
-            let time_limit = (prob.time_limit.as_secs_f64() * 1000.0) as u32;
-            let memory_limit = prob.memory_limit.as_mib() as u32;
+            let time_limit = (prob.meta.time_limit.as_secs_f64() * 1000.0) as u32;
+            let memory_limit = prob.meta.memory_limit.as_mib() as u32;
 
             for task in prob.subtasks.values() {
                 let input_files: Vec<String> = task
                     .items
                     .iter()
-                    .map(|&idx| case_rel_path(&prob.name, prob.data[idx].id, "in"))
+                    .map(|&idx| case_rel_path(&prob.meta.name, prob.data[idx].id, "in"))
                     .collect();
                 let output_files: Vec<String> = task
                     .items
                     .iter()
-                    .map(|&idx| case_rel_path(&prob.name, prob.data[idx].id, "ans"))
+                    .map(|&idx| case_rel_path(&prob.meta.name, prob.data[idx].id, "ans"))
                     .collect();
 
                 match task.policy {
@@ -163,7 +169,7 @@ impl Dumper for LemonDumper {
                     bail!("SPJ 编译错误");
                 }
                 files.push(OutputFile::File {
-                    path: PathBuf::from(format!("data/{}/{}", prob.name, chk_name)),
+                    path: PathBuf::from(format!("data/{}/{}", prob.meta.name, chk_name)),
                     bytes: Box::new(KeepAliveReader::new(
                         std::fs::File::open(&chk_out)?,
                         self.tmp.clone(),
@@ -179,7 +185,7 @@ impl Dumper for LemonDumper {
                 );
             }
 
-            let task_type = match prob.problem_type {
+            let task_type = match prob.meta.problem_type {
                 ProblemType::Program => 0,
                 ProblemType::Output => 1,
                 ProblemType::Interactive => bail!("lemon 不支持交互题"),
@@ -188,11 +194,11 @@ impl Dumper for LemonDumper {
             let prob_json = LemonProblem {
                 answer_file_extension: "out".to_string(),
                 comparison_mode: if prob.checker.is_some() { 4 } else { 1 },
-                special_judge: PathBuf::from(&prob.name).join(&chk_name),
+                special_judge: PathBuf::from(&prob.meta.name).join(&chk_name),
                 diff_arguments: "--ignore-space-change --text --brief".to_string(),
-                input_file_name: format!("{}.in", prob.name),
-                output_file_name: format!("{}.out", prob.name),
-                problem_title: prob.title.clone(),
+                input_file_name: format!("{}.in", prob.meta.name),
+                output_file_name: format!("{}.out", prob.meta.name),
+                problem_title: prob.meta.title.clone(),
                 task_type,
                 compiler_configuration: compilers,
                 test_cases: cases,

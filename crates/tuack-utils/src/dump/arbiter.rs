@@ -37,7 +37,7 @@ impl ArbiterDumper {
         prob: &tuack_lib::dump::DumpProblem,
         warnings: &mut Vec<String>,
     ) -> Result<Option<Box<dyn tuack_lib::data::Reader>>> {
-        let filter_path = self.tmp.path().join(format!("{}_e", prob.name));
+        let filter_path = self.tmp.path().join(format!("{}_e", prob.meta.name));
 
         // 有自定义 SPJ：编译 checker
         if let Some(checker) = &prob.checker {
@@ -107,7 +107,7 @@ impl ArbiterDumper {
             None => {
                 bail!(
                     "题目 {} 没有 chk，也未找到默认比较器源码 assets/sample/default_arbiter.cpp，无法生成 filter。",
-                    prob.name
+                    prob.meta.name
                 );
             }
         }
@@ -156,7 +156,7 @@ impl Dumper for ArbiterDumper {
 
         for (probnum, prob) in doc.problems.iter().enumerate() {
             let probnum = probnum + 1;
-            info!("处理题目：{}", prob.name);
+            info!("处理题目：{}", prob.meta.name);
 
             let score_per_case = if prob.data.is_empty() {
                 0u32
@@ -170,7 +170,7 @@ impl Dumper for ArbiterDumper {
             {
                 warnings.push(format!(
                     "题目 {} 的测试点数量不是 100 的约数，分数无法均分为整数。",
-                    prob.name
+                    prob.meta.name
                 ));
             }
 
@@ -198,33 +198,38 @@ impl Dumper for ArbiterDumper {
 
             let mut probinfo: Vec<(String, String)> = vec![
                 ("TITLE=".into(), "".into()),
-                ("NAME=".into(), prob.name.clone()),
+                ("NAME=".into(), prob.meta.name.clone()),
                 ("RUN=".into(), "".into()),
                 ("INFILESUFFIX=".into(), "in".into()),
                 ("ANSFILESUFFIX=".into(), "ans".into()),
-                ("PLUG=".into(), format!("{}_e", prob.name)),
+                ("PLUG=".into(), format!("{}_e", prob.meta.name)),
                 (
                     "TYPE=".into(),
-                    match prob.problem_type {
+                    match prob.meta.problem_type {
                         ProblemType::Program => "SOURCE".into(),
                         ProblemType::Output => {
                             warnings.push(format!(
                                 "题目 {} 是提交答案型，Arbiter 可能不支持。",
-                                prob.name
+                                prob.meta.name
                             ));
                             "SOURCE".into()
                         }
                         ProblemType::Interactive => {
-                            warnings
-                                .push(format!("题目 {} 是交互型，Arbiter 可能不支持。", prob.name));
+                            warnings.push(format!(
+                                "题目 {} 是交互型，Arbiter 可能不支持。",
+                                prob.meta.name
+                            ));
                             "SOURCE".into()
                         }
                     },
                 ),
-                ("LIMIT=".into(), prob.time_limit.as_secs_f64().to_string()),
+                (
+                    "LIMIT=".into(),
+                    prob.meta.time_limit.as_secs_f64().to_string(),
+                ),
                 (
                     "MEMLIMITS=".into(),
-                    (prob.memory_limit.as_u64() / 1024 / 1024).to_string(),
+                    (prob.meta.memory_limit.as_u64() / 1024 / 1024).to_string(),
                 ),
                 ("SAMPLES=".into(), prob.samples.len().to_string()),
                 ("CCL=c@gcc".into(), format!(" -o %o %i {}", c_args)),
@@ -235,8 +240,8 @@ impl Dumper for ArbiterDumper {
             // 复制数据文件（main/data 与 evaldata 各一份），写 MARK
             for (idx, case) in prob.data.iter().enumerate() {
                 let idx = idx + 1;
-                let in_name = format!("{}{}.in", prob.name, idx);
-                let ans_name = format!("{}{}.ans", prob.name, idx);
+                let in_name = format!("{}{}.in", prob.meta.name, idx);
+                let ans_name = format!("{}{}.ans", prob.meta.name, idx);
 
                 let input = assets.load(prob.idx, &case.input)?;
                 let output = assets.load(prob.idx, &case.output)?;
@@ -274,7 +279,7 @@ impl Dumper for ArbiterDumper {
                     if count_in_subtask > 1 {
                         warnings.push(format!(
                             "题目 {} Subtask #{} 含多个测试点，Arbiter 不支持打包评测，将均分。",
-                            prob.name, case.subtask
+                            prob.meta.name, case.subtask
                         ));
                     }
                     subtask_score / count_in_subtask as u32
@@ -288,7 +293,7 @@ impl Dumper for ArbiterDumper {
             // Checker / filter
             if let Some(stream) = self.build_filter(&*assets, prob, &mut warnings)? {
                 files.push(OutputFile::File {
-                    path: PathBuf::from(format!("main/filter/{}_e", prob.name)),
+                    path: PathBuf::from(format!("main/filter/{}_e", prob.meta.name)),
                     bytes: stream,
                 });
             }
@@ -321,17 +326,17 @@ impl Dumper for ArbiterDumper {
 
         // 复制样例到 down/{day}/{name}/，含附加文件
         for prob in &doc.problems {
-            info!("处理题目样例：{}", prob.name);
-            let prob_down_dir = format!("down/{}/{}", doc.config.day_name, prob.name);
+            info!("处理题目样例：{}", prob.meta.name);
+            let prob_down_dir = format!("down/{}/{}", doc.config.day_name, prob.meta.name);
 
             for (idx, sample) in prob.samples.iter().enumerate() {
                 let idx = idx + 1;
                 files.push(OutputFile::File {
-                    path: PathBuf::from(format!("{}/{}{}.in", prob_down_dir, prob.name, idx)),
+                    path: PathBuf::from(format!("{}/{}{}.in", prob_down_dir, prob.meta.name, idx)),
                     bytes: assets.load(prob.idx, &sample.input)?,
                 });
                 files.push(OutputFile::File {
-                    path: PathBuf::from(format!("{}/{}{}.ans", prob_down_dir, prob.name, idx)),
+                    path: PathBuf::from(format!("{}/{}{}.ans", prob_down_dir, prob.meta.name, idx)),
                     bytes: assets.load(prob.idx, &sample.output)?,
                 });
             }

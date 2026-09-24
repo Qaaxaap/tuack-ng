@@ -7,13 +7,11 @@
 //! - 资源访问（`AssetProvider`）作为能力在 `Dumper::dump` 时单独注入，不随文档数据传递，
 //!   因此本结构可序列化、可跨边界（如 WASM 插件）。
 
-use bytesize::ByteSize;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
-use std::time::Duration;
 
 use crate::prelude::*;
-use crate::ren::ProblemType;
+use crate::problem::ProblemMeta;
 use crate::utils::asset::AssetProvider;
 use crate::utils::output::OutputFile;
 
@@ -83,11 +81,7 @@ pub struct DumpChecker {
 pub struct DumpProblem {
     /// 题目编号（与 assets 登记一致）
     pub idx: u64,
-    pub name: String,
-    pub title: String,
-    pub problem_type: ProblemType,
-    pub time_limit: Duration,
-    pub memory_limit: ByteSize,
+    pub meta: ProblemMeta,
     pub data: Vec<DumpCase>,
     pub subtasks: BTreeMap<u32, DumpSubtask>,
     pub samples: Vec<DumpSample>,

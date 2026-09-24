@@ -1,12 +1,11 @@
 use crate::prelude::*;
+use crate::utils::problem::meta;
 use clap::Args;
 use std::collections::HashSet;
-use std::time::Duration;
 use tuack_lib::dump::{
     DumpCase, DumpChecker, DumpConfig, DumpDocument, DumpFile, DumpProblem, DumpSample,
     DumpSubtask, ScorePolicy,
 };
-use tuack_lib::ren::ProblemType;
 use tuack_utils::assets::FsAssetProvider;
 
 #[derive(Args, Debug)]
@@ -126,15 +125,7 @@ fn build_dump_document(
 
         problems.push(DumpProblem {
             idx: idx as u64,
-            name: prob.name.clone(),
-            title: prob.title.clone(),
-            problem_type: match prob.problem_type {
-                tuack_config::ProblemType::Program => ProblemType::Program,
-                tuack_config::ProblemType::Output => ProblemType::Output,
-                tuack_config::ProblemType::Interactive => ProblemType::Interactive,
-            },
-            time_limit: Duration::from_secs_f64(prob.time_limit),
-            memory_limit: prob.memory_limit,
+            meta: meta(prob, day),
             data,
             subtasks,
             samples,

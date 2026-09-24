@@ -205,7 +205,7 @@ fn build_languages(
 
 /// 生成单个测试点
 fn make_point(prob: &DumpProblem, case: &tuack_lib::dump::DumpCase) -> PrbPoint {
-    let is_output = prob.problem_type == ProblemType::Output;
+    let is_output = prob.meta.problem_type == ProblemType::Output;
     let output = rel_name(&case.output);
     PrbPoint {
         input: rel_name(&case.input),
@@ -214,12 +214,12 @@ fn make_point(prob: &DumpProblem, case: &tuack_lib::dump::DumpCase) -> PrbPoint 
         time: if is_output {
             None
         } else {
-            Some(prob.time_limit.as_secs_f64())
+            Some(prob.meta.time_limit.as_secs_f64())
         },
         mem: if is_output {
             None
         } else {
-            Some(prob.memory_limit.as_mib())
+            Some(prob.meta.memory_limit.as_mib())
         },
     }
 }
@@ -262,7 +262,10 @@ fn build_subtasks(prob: &DumpProblem) -> Result<Vec<PrbSubtask>> {
                     points,
                 });
             }
-            ScorePolicy::Max => bail!("题目 {} 使用 max 评分方法，CCR-Plus 不支持。", prob.name),
+            ScorePolicy::Max => bail!(
+                "题目 {} 使用 max 评分方法，CCR-Plus 不支持。",
+                prob.meta.name
+            ),
         }
     }
 
@@ -275,7 +278,7 @@ fn build_prb(
     compile: &[(String, String)],
     warnings: &mut Vec<String>,
 ) -> Result<String> {
-    let ty = match prob.problem_type {
+    let ty = match prob.meta.problem_type {
         ProblemType::Program => "TRA_0_4",
         ProblemType::Output => "ANS_0_4",
         ProblemType::Interactive => bail!("ccr-plus 不支持交互题"),
@@ -283,15 +286,15 @@ fn build_prb(
 
     let subtasks = build_subtasks(prob)?;
 
-    let source = match prob.problem_type {
+    let source = match prob.meta.problem_type {
         ProblemType::Program => PrbSource {
-            dir: prob.name.clone(),
-            file: Some(prob.name.clone()),
+            dir: prob.meta.name.clone(),
+            file: Some(prob.meta.name.clone()),
             code: Some(DEFAULT_CODE_LEN),
-            languages: build_languages(&prob.name, compile, warnings)?,
+            languages: build_languages(&prob.meta.name, compile, warnings)?,
         },
         ProblemType::Output => PrbSource {
-            dir: prob.name.clone(),
+            dir: prob.meta.name.clone(),
             file: None,
             code: None,
             languages: Vec::new(),
@@ -300,13 +303,13 @@ fn build_prb(
     };
 
     let task = PrbTask {
-        input: if prob.problem_type == ProblemType::Program {
-            Some(format!("{}.in", prob.name))
+        input: if prob.meta.problem_type == ProblemType::Program {
+            Some(format!("{}.in", prob.meta.name))
         } else {
             None
         },
-        output: if prob.problem_type == ProblemType::Program {
-            Some(format!("{}.out", prob.name))
+        output: if prob.meta.problem_type == ProblemType::Program {
+            Some(format!("{}.out", prob.meta.name))
         } else {
             None
         },
@@ -403,7 +406,7 @@ impl Dumper for CcrPlusDumper {
         let mut warnings = Vec::new();
 
         for prob in &doc.problems {
-            let pdir = format!("data/{}", prob.name);
+            let pdir = format!("data/{}", prob.meta.name);
 
             // 复制数据文件（输入/输出）
             for case in &prob.data {
@@ -448,7 +451,7 @@ impl Dumper for CcrPlusDumper {
         }
 
         // 竞赛信息 .ccr（题目顺序）
-        let order: Vec<String> = doc.problems.iter().map(|p| p.name.clone()).collect();
+        let order: Vec<String> = doc.problems.iter().map(|p| p.meta.name.clone()).collect();
         files.push(OutputFile::File {
             path: PathBuf::from(".ccr"),
             bytes: Box::new(std::io::Cursor::new(build_ccr(&order).into_bytes())),
