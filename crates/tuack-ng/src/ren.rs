@@ -309,6 +309,8 @@ fn ren(
         }
     };
 
+    // 主产物路径：完成提示与自动打开共用同一路径。
+    let main_artifact = statements_dir.join(&target);
     if let Err(e) = crate::utils::filesystem::write_outputs(statements_dir, files) {
         msg_error!("写入渲染结果失败：{:?}", e);
         msg_info!("保留临时目录以供调试：{}", tmp_dir.display());
@@ -316,10 +318,10 @@ fn ren(
         std::mem::forget(tmp.clone());
         bail!("写入渲染结果失败");
     }
-    msg_info!("结果已保存到：{}", statements_dir.display());
+    msg_info!("结果已保存到：{}", main_artifact.display());
 
     if !args.no_auto_open {
-        let _ = open(statements_dir.join(target));
+        let _ = open(&main_artifact);
     }
 
     if args.keep_tmp {
