@@ -34,7 +34,10 @@ pub use tuack_lib::dump::{
     DumpCase, DumpChecker, DumpConfig, DumpDocument, DumpFile, DumpProblem, DumpSample,
     DumpSubtask, ScorePolicy,
 };
-pub use tuack_lib::plugin::{CommandResult, DumperOutput, OutputSpec, RendererOutput};
+pub use tuack_lib::plugin::{
+    AssetChunk, AssetError, CommandError, CommandResult, DumperOutput, OutputSpec, PathError,
+    RendererOutput,
+};
 pub use tuack_lib::ren::{
     DateInfo, Problem, ProblemMeta, ProblemType, ProcessorOutput, RenConfig, RenParams,
     RenderDocument, SupportLanguage,

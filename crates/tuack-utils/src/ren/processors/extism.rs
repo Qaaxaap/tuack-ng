@@ -10,7 +10,9 @@ use tempfile::TempDir;
 use tuack_lib::ren::{ProcessorOutput, RenProcessor};
 use tuack_ng_parser::ast::Document;
 
-use crate::plugin::extism::context::{AssetStreams, PluginContext, common_imports};
+use crate::plugin::extism::context::{
+    AssetStreams, PluginContext, READONLY_ASSET_MOUNT, common_imports,
+};
 use crate::prelude::*;
 
 /// 一个基于 extism 的处理器插件。
@@ -43,8 +45,10 @@ impl ExtismProcessor {
         let mut manifest = Manifest::new([Wasm::data(wasm)])
             .with_allowed_path(tmp_dir.to_string_lossy().to_string(), "/");
         if let Some(asset_dir) = &asset_dir {
-            manifest = manifest
-                .with_allowed_path(format!("ro:{}", asset_dir.to_string_lossy()), "/assets");
+            manifest = manifest.with_allowed_path(
+                format!("ro:{}", asset_dir.to_string_lossy()),
+                READONLY_ASSET_MOUNT,
+            );
         }
         let plugin =
             extism::Plugin::new(WasmInput::Manifest(manifest), common_imports(), with_wasi)

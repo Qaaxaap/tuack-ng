@@ -15,7 +15,9 @@ anyhow.workspace = true
 bytesize.workspace = true
 indexmap.workspace = true
 serde.workspace = true
+serde_bytes.workspace = true
 serde_many.workspace = true
+thiserror.workspace = true
 
 [dependencies.tuack-ng-parser]
 workspace = true

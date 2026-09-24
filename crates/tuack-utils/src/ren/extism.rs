@@ -15,7 +15,7 @@ use tuack_lib::utils::output::OutputFile;
 use crate::prelude::*;
 
 use crate::plugin::extism::context::{
-    AssetStreams, PluginContext, common_imports, specs_to_outputs,
+    AssetStreams, PluginContext, READONLY_ASSET_MOUNT, common_imports, specs_to_outputs,
 };
 
 /// 一个基于 extism 的渲染器插件。
@@ -47,8 +47,10 @@ impl ExtismRenderer {
         let mut manifest = Manifest::new([Wasm::data(wasm)])
             .with_allowed_path(tmp_dir.to_string_lossy().to_string(), "/");
         if let Some(asset_dir) = &asset_dir {
-            manifest = manifest
-                .with_allowed_path(format!("ro:{}", asset_dir.to_string_lossy()), "/assets");
+            manifest = manifest.with_allowed_path(
+                format!("ro:{}", asset_dir.to_string_lossy()),
+                READONLY_ASSET_MOUNT,
+            );
         }
 
         let plugin = extism::Plugin::new(WasmInput::Manifest(manifest), common_imports(), wasi)
